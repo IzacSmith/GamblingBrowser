@@ -26,21 +26,53 @@
             font-size: 24px;
             font-weight: bold;
         }
+        #money {
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+        .rolling {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
-    <button onclick="rollSlot()">Roll Slot</button>
+    <div id="money">Money: 500 coins</div>
+    <button id="rollButton" onclick="rollSlot()">Roll Slot (Cost: 50 Coins)</button>
     <div id="slotResult"></div>
 
     <script>
+        let money = 500;
+
         function rollSlot() {
+            if (money < 50) {
+                document.getElementById("slotResult").innerText = "Not enough money!";
+                return;
+            }
+
+            money -= 50;
+            document.getElementById("money").innerText = `Money: ${money} coins`;
+
             const words = ["Gold", "Diamond", "Ruby", "Emerald", "Sapphire"];
-            const money = ["100", "500", "1000", "5000", "10000"];
-            
-            const randomWord = words[Math.floor(Math.random() * words.length)];
-            const randomMoney = money[Math.floor(Math.random() * money.length)];
-            
-            document.getElementById("slotResult").innerText = `You got: ${randomWord} - ${randomMoney} coins!`;
+            const moneyValues = [100, 500, 1000, 5000, 10000];
+
+            const randomIndex = Math.floor(Math.random() * words.length);
+            const randomWord = words[randomIndex];
+            const randomMoney = moneyValues[randomIndex];
+
+            // Simulate rolling effect
+            let rollButton = document.getElementById("rollButton");
+            rollButton.classList.add("rolling");
+
+            setTimeout(() => {
+                rollButton.classList.remove("rolling");
+                money += randomMoney;
+                document.getElementById("money").innerText = `Money: ${money} coins`;
+                document.getElementById("slotResult").innerText = `You got: ${randomWord} - ${randomMoney} coins!`;
+            }, 1000);
         }
     </script>
 </body>
