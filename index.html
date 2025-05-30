@@ -21,25 +21,49 @@
             color: black;
             border-radius: 5px;
         }
-        #slotResult {
-            margin-top: 20px;
-            font-size: 24px;
-            font-weight: bold;
-            height: 30px;
-        }
         #money {
             font-size: 20px;
             margin-bottom: 15px;
+        }
+        .slots {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .slot {
+            width: 100px;
+            height: 100px;
+            margin: 5px;
+            border-radius: 10px;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .rolling {
+            animation: spin 0.1s linear infinite;
+        }
+        @keyframes spin {
+            0% { opacity: 0.3; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
         }
     </style>
 </head>
 <body>
     <div id="money">Money: 500 coins</div>
     <button id="rollButton" onclick="rollSlot()">Roll Slot (Cost: 50 Coins)</button>
-    <div id="slotResult">Rolling...</div>
+    <div class="slots">
+        <div class="slot" id="slot1">❓</div>
+        <div class="slot" id="slot2">❓</div>
+        <div class="slot" id="slot3">❓</div>
+    </div>
+    <div id="slotResult"></div>
 
     <script>
         let money = 500;
+        const images = ["🍒", "🍋", "💎", "🔔", "⭐"];
+        const moneyValues = [100, 500, 1000, 5000, 10000];
 
         function rollSlot() {
             if (money < 50) {
@@ -50,31 +74,42 @@
             money -= 50;
             document.getElementById("money").innerText = `Money: ${money} coins`;
 
-            const words = ["Gold", "Diamond", "Ruby", "Emerald", "Sapphire"];
-            const moneyValues = [100, 500, 1000, 5000, 10000];
+            let slotElements = [
+                document.getElementById("slot1"),
+                document.getElementById("slot2"),
+                document.getElementById("slot3")
+            ];
 
-            let slotResult = document.getElementById("slotResult");
-            let rollButton = document.getElementById("rollButton");
-            
-            rollButton.disabled = true;
+            // Start rolling effect
+            slotElements.forEach(slot => {
+                slot.classList.add("rolling");
+            });
 
             let spins = 10;
             let interval = setInterval(() => {
-                const randomIndex = Math.floor(Math.random() * words.length);
-                slotResult.innerText = words[randomIndex];
-                spins--;
+                slotElements.forEach(slot => {
+                    const randomIndex = Math.floor(Math.random() * images.length);
+                    slot.innerText = images[randomIndex];
+                });
 
+                spins--;
                 if (spins <= 0) {
                     clearInterval(interval);
-                    const finalIndex = Math.floor(Math.random() * words.length);
-                    const finalWord = words[finalIndex];
-                    const finalMoney = moneyValues[finalIndex];
+
+                    // Stop rolling effect and show final results
+                    slotElements.forEach(slot => {
+                        slot.classList.remove("rolling");
+                    });
+
+                    const finalIndexes = slotElements.map(() => Math.floor(Math.random() * images.length));
+                    const finalSymbols = finalIndexes.map(index => images[index]);
+                    const finalMoney = moneyValues[finalIndexes[0]];
 
                     money += finalMoney;
                     document.getElementById("money").innerText = `Money: ${money} coins`;
-                    slotResult.innerText = `You got: ${finalWord} - ${finalMoney} coins!`;
+                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${finalMoney} coins!`;
 
-                    rollButton.disabled = false;
+                    document.getElementById("rollButton").disabled = false;
                 }
             }, 100);
         }
