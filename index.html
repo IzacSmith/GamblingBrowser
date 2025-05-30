@@ -59,6 +59,7 @@
         }
         input[type="range"] {
             width: 100%;
+            margin-top: 10px;
         }
     </style>
 </head>
@@ -79,7 +80,7 @@
 
     <script>
         let money = 500;
-        const images = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
+        const symbols = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
         const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, 10000];
 
         function updateBetDisplay() {
@@ -108,8 +109,8 @@
             let spins = 10;
             let interval = setInterval(() => {
                 slotElements.forEach(slot => {
-                    const randomIndex = Math.floor(Math.random() * images.length);
-                    slot.innerText = images[randomIndex];
+                    const randomIndex = Math.floor(Math.random() * symbols.length);
+                    slot.innerText = symbols[randomIndex];
                 });
 
                 spins--;
@@ -117,23 +118,21 @@
                     clearInterval(interval);
                     slotElements.forEach(slot => slot.classList.remove("rolling"));
 
-                    const finalIndexes = slotElements.map(() => Math.floor(Math.random() * images.length));
-                    const finalSymbols = finalIndexes.map(index => images[index]);
+                    const finalIndexes = slotElements.map(() => Math.floor(Math.random() * symbols.length));
+                    const finalSymbols = finalIndexes.map(index => symbols[index]);
 
                     let winnings = moneyValues[finalIndexes[0]];
                     if (finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2]) {
                         if (finalSymbols[0] === "🔹") {
-                            winnings = -betAmount;
+                            winnings = -betAmount; // Lose condition if all Sapphires (🔹)
                         } else {
-                            winnings *= 3;
+                            winnings *= 3; // Jackpot multiplier for 3 matching symbols
                         }
                     }
 
                     money += winnings;
                     document.getElementById("money").innerText = `Money: ${money} coins`;
                     document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? `+${winnings}` : `${winnings}`} coins!`;
-
-                    document.getElementById("rollButton").disabled = false;
                 }
             }, 100);
         }
