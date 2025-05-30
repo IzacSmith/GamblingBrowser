@@ -71,6 +71,8 @@
         <div id="betDisplay">Bet: 50 coins</div>
         <button id="rollButton" onclick="rollSlot()">Roll Slot</button>
         <button onclick="gambleHalf()">Gamble Half</button>
+        <button id="autoRollButton" onclick="startAutoRoll()">Auto-Roll</button>
+        <button id="stopRollButton" onclick="stopAutoRoll()" disabled>Stop Auto-Roll</button>
         <div class="slots">
             <div class="slot" id="slot1">❓</div>
             <div class="slot" id="slot2">❓</div>
@@ -81,6 +83,7 @@
 
     <script>
         let money = 500;
+        let autoRollInterval;
         const symbols = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
         const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, 10000];
 
@@ -147,6 +150,20 @@
                     document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? `+${winnings}` : `${winnings}`} coins!`;
                 }
             }, 100);
+        }
+
+        function startAutoRoll() {
+            document.getElementById("autoRollButton").disabled = true;
+            document.getElementById("stopRollButton").disabled = false;
+            autoRollInterval = setInterval(() => {
+                rollSlot();
+            }, 2000);
+        }
+
+        function stopAutoRoll() {
+            clearInterval(autoRollInterval);
+            document.getElementById("autoRollButton").disabled = false;
+            document.getElementById("stopRollButton").disabled = true;
         }
     </script>
 </body>
