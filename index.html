@@ -70,6 +70,7 @@
         <input type="range" id="betAmount" min="50" max="500" step="50" value="50" oninput="updateBetDisplay()">
         <div id="betDisplay">Bet: 50 coins</div>
         <button id="rollButton" onclick="rollSlot()">Roll Slot</button>
+        <button onclick="gambleHalf()">Gamble Half</button>
         <div class="slots">
             <div class="slot" id="slot1">❓</div>
             <div class="slot" id="slot2">❓</div>
@@ -86,6 +87,17 @@
         function updateBetDisplay() {
             const betAmount = document.getElementById("betAmount").value;
             document.getElementById("betDisplay").innerText = `Bet: ${betAmount} coins`;
+        }
+
+        function gambleHalf() {
+            const betAmount = Math.floor(money / 2);
+            if (betAmount < 50) {
+                document.getElementById("slotResult").innerText = "Not enough money!";
+                return;
+            }
+            document.getElementById("betAmount").value = betAmount;
+            updateBetDisplay();
+            rollSlot();
         }
 
         function rollSlot() {
