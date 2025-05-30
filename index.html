@@ -9,8 +9,15 @@
             font-family: Arial, sans-serif;
             text-align: center;
             margin-top: 50px;
-            background-color: #121212;
+            background-color: #222;
             color: white;
+        }
+        .container {
+            max-width: 400px;
+            margin: auto;
+            padding: 20px;
+            background-color: #333;
+            border-radius: 10px;
         }
         button {
             padding: 10px 20px;
@@ -20,6 +27,7 @@
             background-color: #f39c12;
             color: black;
             border-radius: 5px;
+            margin-top: 10px;
         }
         #money {
             font-size: 20px;
@@ -39,6 +47,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            font-size: 50px;
         }
         .rolling {
             animation: spin 0.1s linear infinite;
@@ -48,30 +57,44 @@
             50% { opacity: 0.7; }
             100% { opacity: 1; }
         }
+        input[type="range"] {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
-    <div id="money">Money: 500 coins</div>
-    <button id="rollButton" onclick="rollSlot()">Roll Slot (Cost: 50 Coins)</button>
-    <div class="slots">
-        <div class="slot" id="slot1">❓</div>
-        <div class="slot" id="slot2">❓</div>
-        <div class="slot" id="slot3">❓</div>
+    <div class="container">
+        <div id="money">Money: 500 coins</div>
+        <label for="betAmount">Bet Amount:</label>
+        <input type="range" id="betAmount" min="50" max="500" step="50" value="50" oninput="updateBetDisplay()">
+        <div id="betDisplay">Bet: 50 coins</div>
+        <button id="rollButton" onclick="rollSlot()">Roll Slot</button>
+        <div class="slots">
+            <div class="slot" id="slot1">❓</div>
+            <div class="slot" id="slot2">❓</div>
+            <div class="slot" id="slot3">❓</div>
+        </div>
+        <div id="slotResult"></div>
     </div>
-    <div id="slotResult"></div>
 
     <script>
         let money = 500;
-        const images = ["🍒", "🍋", "💎", "🔔", "⭐"];
-        const moneyValues = [100, 500, 1000, 5000, 10000];
+        const images = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
+        const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, 10000];
+
+        function updateBetDisplay() {
+            const betAmount = document.getElementById("betAmount").value;
+            document.getElementById("betDisplay").innerText = `Bet: ${betAmount} coins`;
+        }
 
         function rollSlot() {
-            if (money < 50) {
+            let betAmount = parseInt(document.getElementById("betAmount").value);
+            if (money < betAmount) {
                 document.getElementById("slotResult").innerText = "Not enough money!";
                 return;
             }
 
-            money -= 50;
+            money -= betAmount;
             document.getElementById("money").innerText = `Money: ${money} coins`;
 
             let slotElements = [
@@ -80,10 +103,7 @@
                 document.getElementById("slot3")
             ];
 
-            // Start rolling effect
-            slotElements.forEach(slot => {
-                slot.classList.add("rolling");
-            });
+            slotElements.forEach(slot => slot.classList.add("rolling"));
 
             let spins = 10;
             let interval = setInterval(() => {
@@ -95,19 +115,23 @@
                 spins--;
                 if (spins <= 0) {
                     clearInterval(interval);
-
-                    // Stop rolling effect and show final results
-                    slotElements.forEach(slot => {
-                        slot.classList.remove("rolling");
-                    });
+                    slotElements.forEach(slot => slot.classList.remove("rolling"));
 
                     const finalIndexes = slotElements.map(() => Math.floor(Math.random() * images.length));
                     const finalSymbols = finalIndexes.map(index => images[index]);
-                    const finalMoney = moneyValues[finalIndexes[0]];
 
-                    money += finalMoney;
+                    let winnings = moneyValues[finalIndexes[0]];
+                    if (finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2]) {
+                        if (finalSymbols[0] === "🔹") {
+                            winnings = -betAmount;
+                        } else {
+                            winnings *= 3;
+                        }
+                    }
+
+                    money += winnings;
                     document.getElementById("money").innerText = `Money: ${money} coins`;
-                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${finalMoney} coins!`;
+                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? `+${winnings}` : `${winnings}`} coins!`;
 
                     document.getElementById("rollButton").disabled = false;
                 }
