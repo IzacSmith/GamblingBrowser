@@ -1,209 +1,223 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Slot Machine Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            background-color: #222;
-            color: white;
-        }
-        .container {
-            max-width: 400px;
-            margin: auto;
-            padding: 20px;
-            background-color: #333;
-            border-radius: 10px;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            border: none;
-            cursor: pointer;
-            background-color: #f39c12;
-            color: black;
-            border-radius: 5px;
-            margin-top: 10px;
-        }
-        #money {
-            font-size: 20px;
-            margin-bottom: 15px;
-        }
-        .slots {
-            display: flex;
-            justify-content: center;
-            margin-top: 20px;
-        }
-        .slot {
-            width: 100px;
-            height: 100px;
-            margin: 5px;
-            border-radius: 10px;
-            background-color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 50px;
-        }
-        .rolling {
-            animation: spin 0.1s linear infinite;
-        }
-        @keyframes spin {
-            0% { opacity: 0.3; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-        input[type="range"] {
-            width: 100%;
-            margin-top: 10px;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <title>Ultimate Slot Machine</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      margin: 0;
+      background-color: #222;
+      color: white;
+      padding: 30px;
+    }
+    .container {
+      max-width: 480px;
+      margin: auto;
+      padding: 20px;
+      background-color: #333;
+      border-radius: 15px;
+    }
+    .slot {
+      width: 100px;
+      height: 100px;
+      font-size: 50px;
+      margin: 10px;
+      border-radius: 10px;
+      background-color: #fff;
+      color: #000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .slots {
+      display: flex;
+      justify-content: center;
+      margin-top: 10px;
+    }
+    button {
+      padding: 10px 20px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      background-color: #f39c12;
+      color: black;
+      cursor: pointer;
+    }
+    .rolling {
+      animation: spin 0.1s linear infinite;
+    }
+    @keyframes spin {
+      0% { opacity: 0.3; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+    input[type="range"] {
+      width: 100%;
+      margin-top: 10px;
+    }
+    .stats, #history {
+      text-align: left;
+      font-size: 14px;
+      margin-top: 20px;
+      background-color: #444;
+      padding: 10px;
+      border-radius: 10px;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <div id="money">Money: 500 coins</div>
-        <label for="betAmount">Bet Amount:</label>
-        <input type="range" id="betAmount" min="50" max="500" step="50" value="50" oninput="updateBetDisplay()">
-        <div id="betDisplay">Bet: 50 coins</div>
-        <button id="rollButton" onclick="rollSlot()">Roll Slot</button>
-        <button onclick="gambleHalf()">Gamble Half</button>
-        <button id="autoRollButton" onclick="startAutoRoll()">Auto-Roll</button>
-        <button id="stopRollButton" onclick="stopAutoRoll()" disabled>Stop Auto-Roll</button>
-        <div class="slots">
-            <div class="slot" id="slot1">❓</div>
-            <div class="slot" id="slot2">❓</div>
-            <div class="slot" id="slot3">❓</div>
-        </div>
-        <div id="slotResult"></div>
+  <div class="container">
+    <div id="money">Money: 500 coins</div>
+    <label>Bet Amount:</label>
+    <input type="range" id="betAmount" min="50" max="500" step="50" value="50" oninput="updateBetDisplay()">
+    <div id="betDisplay">Bet: 50 coins</div>
+    <button onclick="rollSlot()">Roll Slot</button>
+    <button onclick="gambleHalf()">Gamble Half</button>
+    <button onclick="startAutoRoll()">Auto-Roll</button>
+    <button id="stopRollButton" onclick="stopAutoRoll()" disabled>Stop Auto-Roll</button>
+
+    <div class="slots">
+      <div class="slot" id="slot1">❓</div>
+      <div class="slot" id="slot2">❓</div>
+      <div class="slot" id="slot3">❓</div>
     </div>
 
-    <script>
-        let money = 500;
-        let autoRollInterval;
-        const symbols = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
-        const weights = [25, 25, 10, 10, 10, 10, 5, 5];
-        const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, -1];
+    <div id="slotResult" style="margin-top:10px;"></div>
+    <div id="history"></div>
+    <div class="stats" id="stats"></div>
+  </div>
 
-            function formatCoins(value, options = {}) {
-            const absValue = Math.abs(value);
-            const {
-                suffixes = { T: "T", B: "B", M: "M", K: "K" },
-                locale = "en-US",
-                dynamicPrecision = true
-            } = options;
-        
-            const format = (val, suffix) => {
-                const digits = dynamicPrecision
-                    ? val >= 100 ? 0 : val >= 10 ? 1 : 2
-                    : 2;
-                return val.toFixed(digits) + suffix;
-            };
-        
-            if (absValue >= 1_000_000_000_000) return format(value / 1_000_000_000_000, suffixes.T);
-            if (absValue >= 1_000_000_000) return format(value / 1_000_000_000, suffixes.B);
-            if (absValue >= 1_000_000) return format(value / 1_000_000, suffixes.M);
-            if (absValue >= 1_000) return format(value / 1_000, suffixes.K);
-            return value.toLocaleString(locale);
+  <script>
+    let money = 500, totalBets = 0, totalWins = 0, winStreak = 0, bestWin = 0;
+    let autoRollInterval;
+    const rollHistory = [];
+
+    const symbols = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
+    const weights = [25, 25, 10, 10, 10, 10, 5, 5];
+    const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, -1];
+
+    function formatCoins(value) {
+      if (Math.abs(value) >= 1e9) return (value / 1e9).toFixed(2) + "B";
+      if (Math.abs(value) >= 1e6) return (value / 1e6).toFixed(2) + "M";
+      if (Math.abs(value) >= 1e3) return (value / 1e3).toFixed(2) + "K";
+      return value.toLocaleString();
+    }
+
+    function updateBetDisplay() {
+      const bet = parseInt(document.getElementById("betAmount").value);
+      document.getElementById("betDisplay").innerText = `Bet: ${formatCoins(bet)} coins`;
+    }
+
+    function updateStats() {
+      document.getElementById("stats").innerHTML = `
+        <strong>Stats:</strong><br>
+        Total Bets: ${formatCoins(totalBets)}<br>
+        Total Wins: ${formatCoins(totalWins)}<br>
+        Win/Loss Ratio: ${(totalWins / totalBets || 0).toFixed(2)}<br>
+        Current Streak: ${winStreak}<br>
+        Best Win: ${formatCoins(bestWin)} coins
+      `;
+    }
+
+    function updateHistory(text) {
+      rollHistory.unshift(text);
+      if (rollHistory.length > 10) rollHistory.pop();
+      document.getElementById("history").innerHTML = 
+        `<strong>History:</strong><br>${rollHistory.join("<br>")}`;
+    }
+
+    function getWeightedSymbolIndex() {
+      const total = weights.reduce((a,b)=>a+b);
+      let rand = Math.floor(Math.random() * total), sum = 0;
+      for (let i=0; i<weights.length; i++) {
+        sum += weights[i];
+        if (rand < sum) return i;
+      }
+      return weights.length-1;
+    }
+
+    function applyBonus(symbol, win) {
+      if (symbol === "💰") return win * 2;
+      if (symbol === "💎") return win + 1000;
+      if (symbol === "🔹") return -Math.floor(Math.random() * 500);
+      return win;
+    }
+
+    function rollSlot() {
+      const bet = parseInt(document.getElementById("betAmount").value);
+      if (money < bet) return document.getElementById("slotResult").innerText = "Not enough coins!";
+      money -= bet;
+      totalBets += bet;
+
+      const slots = [slot1, slot2, slot3];
+      slots.forEach(slot => slot.classList.add("rolling"));
+
+      let spins = 10;
+      let interval = setInterval(() => {
+        slots.forEach(slot => {
+          const i = getWeightedSymbolIndex();
+          slot.innerText = symbols[i];
+        });
+        if (--spins <= 0) {
+          clearInterval(interval);
+          slots.forEach(slot => slot.classList.remove("rolling"));
+          const indexes = slots.map(() => getWeightedSymbolIndex());
+          const results = indexes.map(i => symbols[i]);
+          slots.forEach((s, i) => s.innerText = results[i]);
+
+          let winnings = 0;
+          if (results[0] === results[1] && results[1] === results[2]) {
+            let base = moneyValues[indexes[0]];
+            winnings = base < 0 ? base * (bet / 50) : base * 3 * (bet / 50);
+          } else {
+            winnings = moneyValues[indexes[0]] * (bet / 50);
+          }
+
+          winnings = applyBonus(results[0], winnings);
+          winnings = Math.floor(winnings);
+          if (winnings > 0) {
+            winStreak++;
+            bestWin = Math.max(bestWin, winnings);
+            totalWins += winnings;
+          } else {
+            winStreak = 0;
+          }
+
+          money += winnings;
+
+          document.getElementById("money").innerText = `Money: ${formatCoins(money)} coins`;
+          document.getElementById("slotResult").innerText = 
+            `Result: ${results.join(" ")} — ${winnings >= 0 ? "+" : ""}${formatCoins(winnings)} coins`;
+          updateStats();
+          updateHistory(`${results.join(" ")} — ${winnings >= 0 ? "+" : ""}${formatCoins(winnings)} coins`);
+          updateBetDisplay();
         }
+      }, 100);
+    }
 
+    function gambleHalf() {
+      if (money < 50) return document.getElementById("slotResult").innerText = "Not enough money!";
+      const half = Math.floor(money / 2);
+      document.getElementById("betAmount").value = half;
+      updateBetDisplay();
+      rollSlot();
+    }
 
-        function updateBetDisplay() {
-            const betAmountInput = document.getElementById("betAmount");
-            betAmountInput.max = money;
-            const betAmount = betAmountInput.value;
-            document.getElementById("betDisplay").innerText = `Bet: ${formatCoins(parseInt(betAmount))} coins`;
-        }
+    function startAutoRoll() {
+      autoRollInterval = setInterval(rollSlot, 2000);
+      document.getElementById("stopRollButton").disabled = false;
+    }
 
-        function getWeightedSymbolIndex() {
-            const total = weights.reduce((a, b) => a + b);
-            const rand = Math.floor(Math.random() * total);
-            let sum = 0;
-            for (let i = 0; i < weights.length; i++) {
-                sum += weights[i];
-                if (rand < sum) return i;
-            }
-            return weights.length - 1;
-        }
+    function stopAutoRoll() {
+      clearInterval(autoRollInterval);
+      document.getElementById("stopRollButton").disabled = true;
+    }
 
-        function gambleHalf() {
-            if (money < 50) {
-                document.getElementById("slotResult").innerText = "Not enough money!";
-                return;
-            }
-            const betAmount = Math.floor(money / 2);
-            document.getElementById("betAmount").value = betAmount;
-            updateBetDisplay();
-            rollSlot();
-        }
-
-        function rollSlot() {
-            let betAmount = parseInt(document.getElementById("betAmount").value);
-            if (money < betAmount) {
-                document.getElementById("slotResult").innerText = "Not enough money!";
-                return;
-            }
-
-            money -= betAmount;
-            document.getElementById("money").innerText = `Money: ${formatCoins(money)} coins`;
-            updateBetDisplay();
-
-            let slotElements = [
-                document.getElementById("slot1"),
-                document.getElementById("slot2"),
-                document.getElementById("slot3")
-            ];
-
-            slotElements.forEach(slot => slot.classList.add("rolling"));
-
-            let spins = 10;
-            let interval = setInterval(() => {
-                slotElements.forEach(slot => {
-                    const randomIndex = getWeightedSymbolIndex();
-                    slot.innerText = symbols[randomIndex];
-                });
-
-                spins--;
-                if (spins <= 0) {
-                    clearInterval(interval);
-                    slotElements.forEach(slot => slot.classList.remove("rolling"));
-
-                    const finalIndexes = slotElements.map(() => getWeightedSymbolIndex());
-                    const finalSymbols = finalIndexes.map(index => symbols[index]);
-
-                    let winnings = 0;
-                    if (finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2]) {
-                        const base = moneyValues[finalIndexes[0]];
-                        winnings = base < 0 ? base * (betAmount / 50) : base * 3 * (betAmount / 50);
-                    } else {
-                        winnings = moneyValues[finalIndexes[0]] * (betAmount / 50);
-                    }
-
-                    winnings = Math.floor(winnings);
-                    money += winnings;
-
-                    document.getElementById("money").innerText = `Money: ${formatCoins(money)} coins`;
-                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? "+" : ""}${formatCoins(winnings)} coins!`;
-                    updateBetDisplay();
-                }
-            }, 100);
-        }
-
-        function startAutoRoll() {
-            document.getElementById("autoRollButton").disabled = true;
-            document.getElementById("stopRollButton").disabled = false;
-            autoRollInterval = setInterval(() => {
-                rollSlot();
-            }, 2000);
-        }
-
-        function stopAutoRoll() {
-            clearInterval(autoRollInterval);
-            document.getElementById("autoRollButton").disabled = false;
-            document.getElementById("stopRollButton").disabled = true;
-        }
+    window.onload = () => {
+      updateBetDisplay();
     </script>
 </body>
 </html>
