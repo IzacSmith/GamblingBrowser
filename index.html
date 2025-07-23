@@ -6,18 +6,23 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      text-align: center;
       margin: 0;
       background-color: #222;
       color: white;
       padding: 30px;
     }
     .container {
-      max-width: 480px;
+      max-width: 960px;
       margin: auto;
-      padding: 20px;
       background-color: #333;
       border-radius: 15px;
+      padding: 20px;
+      display: flex;
+      gap: 20px;
+    }
+    .main {
+      flex: 1;
+      text-align: center;
     }
     .slot {
       width: 100px;
@@ -59,9 +64,8 @@
       margin-top: 10px;
     }
     .stats, #history {
-      text-align: left;
+      width: 200px;
       font-size: 14px;
-      margin-top: 20px;
       background-color: #444;
       padding: 10px;
       border-radius: 10px;
@@ -70,28 +74,31 @@
 </head>
 <body>
   <div class="container">
-    <div id="money">Money: 500 coins</div>
-    <label>Bet Amount:</label>
-    <input type="range" id="betAmount" min="50" step="50" value="50" oninput="updateBetDisplay()">
-    <div id="betDisplay">Bet: 50 coins</div>
-    <button onclick="rollSlot()">Roll Slot</button>
-    <button onclick="gambleHalf()">Gamble Half</button>
-    <button onclick="startAutoRoll()">Auto-Roll</button>
-    <button id="stopRollButton" onclick="stopAutoRoll()" disabled>Stop Auto-Roll</button>
+    <div class="stats" id="stats"></div>
 
-    <div class="slots">
-      <div class="slot" id="slot1">❓</div>
-      <div class="slot" id="slot2">❓</div>
-      <div class="slot" id="slot3">❓</div>
+    <div class="main">
+      <div id="money">Money: 500 coins</div>
+      <label>Bet Amount:</label>
+      <input type="range" id="betAmount" min="50" step="50" value="50" oninput="updateBetDisplay()">
+      <div id="betDisplay">Bet: 50 coins</div>
+      <button onclick="rollSlot()">Roll Slot</button>
+      <button onclick="gambleHalf()">Gamble Half</button>
+      <button onclick="startAutoRoll()">Auto-Roll</button>
+      <button id="stopRollButton" onclick="stopAutoRoll()" disabled>Stop Auto-Roll</button>
+
+      <div class="slots">
+        <div class="slot" id="slot1">❓</div>
+        <div class="slot" id="slot2">❓</div>
+        <div class="slot" id="slot3">❓</div>
+      </div>
+
+      <div id="slotResult" style="margin-top:10px;"></div>
     </div>
 
-    <div id="slotResult" style="margin-top:10px;"></div>
     <div id="history"></div>
-    <div class="stats" id="stats"></div>
   </div>
 
   <script>
-    const maxBet = 50000000;
     let money = 500, totalBets = 0, totalWins = 0, winStreak = 0, bestWin = 0;
     let autoRollInterval;
     const rollHistory = [];
@@ -116,6 +123,10 @@
         }
       }
       return value.toLocaleString("en-US");
+    }
+
+    function getMaxBet() {
+      return Math.max(50, Math.floor(money * 0.75));
     }
 
     function updateBetDisplay() {
@@ -199,48 +210,48 @@
           }
 
           money += winnings;
-
           document.getElementById("money").innerText = `Money: ${formatCoins(money)} coins`;
-          document.getElementById("slotResult").innerText =
-            `Result: ${results.join(" ")} — ${winnings >= 0 ? "+" : ""}${formatCoins(winnings)} coins`;
+          document.getElementById("slotResult").innerText = `Result: ${results.join(" ")} — ${winnings >= 0 ? "+" : ""}${formatCoins(winnings)} coins`;
+          document.getElementById("betAmount").max = getMaxBet();
           updateStats();
           updateHistory(`${results.join(" ")} — ${winnings >= 0 ? "+" : ""}${formatCoins(winnings)} coins`);
-          updateBetDisplay();
-        }
-      }, 100);
-    }
-
-    function gambleHalf() {
-      if (money < 50) {
-        document.getElementById("slotResult").innerText = "Not enough money!";
-        return;
-      }
-      const halfBet = Math.max(50, Math.floor(money / 2));
-      document.getElementById("betAmount").value = Math.min(halfBet, maxBet);
-      updateBetDisplay();
+          updateBet()
+          Display();
+          }
+          function gambleHalf() {
+            if (money < 50) {
+              document.getElementById("slotResult").innerText = "Not enough money!";
+              return;
+            }
+            const halfBet = Math.max(50, Math.floor(money / 2));
+            document.getElementById("betAmount").value = Math.min(halfBet, getMaxBet());
+            document.getElementById("betAmount").max = getMaxBet();
+            updateBetDisplay();
             rollSlot();
-    }
+          }
+          function startAutoRoll() {
+            autoRollInterval = setInterval(() => {
+              const autoBet = Math.max(50, Math.floor(money * 0.1));
+              document.getElementById("betAmount").value = Math.min(autoBet, Math.min(getMaxBet(), money));
+              document.getElementById("betAmount").max = getMaxBet();
+              updateBetDisplay();
+              rollSlot();
+            }, 2000);
+            document.getElementById("stopRollButton").disabled = false;
+          }
+          function stopAutoRoll() {
+            clearInterval(autoRollInterval);
+            document.getElementById("stopRollButton").disabled = true;
+          }
+          window.onload = () => {
+            document.getElementById("betAmount").max = getMaxBet();
+            updateBetDisplay();
+            updateStats();
+          };
 
-    function startAutoRoll() {
-      autoRollInterval = setInterval(() => {
-        const autoBet = Math.max(50, Math.floor(money * 0.1));
-        document.getElementById("betAmount").value = Math.min(autoBet, Math.min(maxBet, money));
-        updateBetDisplay();
-        rollSlot();
-      }, 2000);
-      document.getElementById("stopRollButton").disabled = false;
-    }
-
-    function stopAutoRoll() {
-      clearInterval(autoRollInterval);
-      document.getElementById("stopRollButton").disabled = true;
-    }
-
-    window.onload = () => {
-      document.getElementById("betAmount").max = maxBet;
-      updateBetDisplay();
-      updateStats();
-    };
-  </script>
+       </script>
 </body>
 </html>
+
+
+          
