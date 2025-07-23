@@ -87,11 +87,18 @@
         const weights = [25, 25, 10, 10, 10, 10, 5, 5];
         const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, -1];
 
+        function formatCoins(value) {
+            if (Math.abs(value) >= 1_000_000_000) return (value / 1_000_000_000).toFixed(2) + "B";
+            if (Math.abs(value) >= 1_000_000) return (value / 1_000_000).toFixed(2) + "M";
+            if (Math.abs(value) >= 1_000) return (value / 1_000).toFixed(2) + "K";
+            return value.toLocaleString();
+        }
+
         function updateBetDisplay() {
             const betAmountInput = document.getElementById("betAmount");
             betAmountInput.max = money;
             const betAmount = betAmountInput.value;
-            document.getElementById("betDisplay").innerText = `Bet: ${betAmount} coins`;
+            document.getElementById("betDisplay").innerText = `Bet: ${formatCoins(parseInt(betAmount))} coins`;
         }
 
         function getWeightedSymbolIndex() {
@@ -124,7 +131,7 @@
             }
 
             money -= betAmount;
-            document.getElementById("money").innerText = `Money: ${money} coins`;
+            document.getElementById("money").innerText = `Money: ${formatCoins(money)} coins`;
             updateBetDisplay();
 
             let slotElements = [
@@ -158,9 +165,11 @@
                         winnings = moneyValues[finalIndexes[0]] * (betAmount / 50);
                     }
 
-                    money += Math.floor(winnings);
-                    document.getElementById("money").innerText = `Money: ${money} coins`;
-                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? `+${Math.floor(winnings)}` : `${Math.floor(winnings)}`} coins!`;
+                    winnings = Math.floor(winnings);
+                    money += winnings;
+
+                    document.getElementById("money").innerText = `Money: ${formatCoins(money)} coins`;
+                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? "+" : ""}${formatCoins(winnings)} coins!`;
                     updateBetDisplay();
                 }
             }, 100);
