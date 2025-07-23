@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slot Machine Game</title>
     <style>
         body {
@@ -85,13 +84,25 @@
         let money = 500;
         let autoRollInterval;
         const symbols = ["🍒", "🍋", "💎", "🔔", "⭐", "🎲", "💰", "🔹"];
-        const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, 10000];
+        const weights = [25, 25, 10, 10, 10, 10, 5, 5];
+        const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, -1];
 
         function updateBetDisplay() {
             const betAmountInput = document.getElementById("betAmount");
-            betAmountInput.max = money; // Ensure max bet matches available money
+            betAmountInput.max = money;
             const betAmount = betAmountInput.value;
             document.getElementById("betDisplay").innerText = `Bet: ${betAmount} coins`;
+        }
+
+        function getWeightedSymbolIndex() {
+            const total = weights.reduce((a, b) => a + b);
+            const rand = Math.floor(Math.random() * total);
+            let sum = 0;
+            for (let i = 0; i < weights.length; i++) {
+                sum += weights[i];
+                if (rand < sum) return i;
+            }
+            return weights.length - 1;
         }
 
         function gambleHalf() {
@@ -127,7 +138,7 @@
             let spins = 10;
             let interval = setInterval(() => {
                 slotElements.forEach(slot => {
-                    const randomIndex = Math.floor(Math.random() * symbols.length);
+                    const randomIndex = getWeightedSymbolIndex();
                     slot.innerText = symbols[randomIndex];
                 });
 
@@ -136,22 +147,21 @@
                     clearInterval(interval);
                     slotElements.forEach(slot => slot.classList.remove("rolling"));
 
-                    const finalIndexes = slotElements.map(() => Math.floor(Math.random() * symbols.length));
+                    const finalIndexes = slotElements.map(() => getWeightedSymbolIndex());
                     const finalSymbols = finalIndexes.map(index => symbols[index]);
 
-                    let winnings = moneyValues[finalIndexes[0]];
+                    let winnings = 0;
                     if (finalSymbols[0] === finalSymbols[1] && finalSymbols[1] === finalSymbols[2]) {
-                        if (finalSymbols[0] === "🔹") {
-                            winnings = -betAmount;
-                        } else {
-                            winnings *= 3; 
-                        }
+                        const base = moneyValues[finalIndexes[0]];
+                        winnings = base < 0 ? base * (betAmount / 50) : base * 3 * (betAmount / 50);
+                    } else {
+                        winnings = moneyValues[finalIndexes[0]] * (betAmount / 50);
                     }
 
-                    money += winnings;
+                    money += Math.floor(winnings);
                     document.getElementById("money").innerText = `Money: ${money} coins`;
-                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? `+${winnings}` : `${winnings}`} coins!`;
-                    updateBetDisplay(); 
+                    document.getElementById("slotResult").innerText = `You got: ${finalSymbols.join(" ")} - ${winnings > 0 ? `+${Math.floor(winnings)}` : `${Math.floor(winnings)}`} coins!`;
+                    updateBetDisplay();
                 }
             }, 100);
         }
