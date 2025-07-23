@@ -87,12 +87,28 @@
         const weights = [25, 25, 10, 10, 10, 10, 5, 5];
         const moneyValues = [100, 200, 500, 1000, 2000, 3000, 5000, -1];
 
-        function formatCoins(value) {
-            if (Math.abs(value) >= 1_000_000_000) return (value / 1_000_000_000).toFixed(2) + "B";
-            if (Math.abs(value) >= 1_000_000) return (value / 1_000_000).toFixed(2) + "M";
-            if (Math.abs(value) >= 1_000) return (value / 1_000).toFixed(2) + "K";
-            return value.toLocaleString();
+            function formatCoins(value, options = {}) {
+            const absValue = Math.abs(value);
+            const {
+                suffixes = { T: "T", B: "B", M: "M", K: "K" },
+                locale = "en-US",
+                dynamicPrecision = true
+            } = options;
+        
+            const format = (val, suffix) => {
+                const digits = dynamicPrecision
+                    ? val >= 100 ? 0 : val >= 10 ? 1 : 2
+                    : 2;
+                return val.toFixed(digits) + suffix;
+            };
+        
+            if (absValue >= 1_000_000_000_000) return format(value / 1_000_000_000_000, suffixes.T);
+            if (absValue >= 1_000_000_000) return format(value / 1_000_000_000, suffixes.B);
+            if (absValue >= 1_000_000) return format(value / 1_000_000, suffixes.M);
+            if (absValue >= 1_000) return format(value / 1_000, suffixes.K);
+            return value.toLocaleString(locale);
         }
+
 
         function updateBetDisplay() {
             const betAmountInput = document.getElementById("betAmount");
